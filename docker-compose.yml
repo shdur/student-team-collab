@@ -1,0 +1,84 @@
+
+
+services:
+  mongo:
+    image: mongo:4.4   # version më i vjetër për të shmangur AVX problematik
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    ports:
+      - "4001:4001"
+    depends_on:
+      - mongo
+    environment:
+    - MONGO_URI=mongodb://mongo:27017/authdb
+
+
+  project-service:
+    build: ./project-service
+    container_name: project-service
+    ports:
+      - "4002:4002"
+    depends_on:
+      - mongo
+    environment:
+      - DATABASE_URL=mongodb://mongo:27017/projectdb
+
+  task-service:
+    build: ./task-service
+    container_name: task-service
+    ports:
+      - "4003:4003"
+    depends_on:
+      - mongo
+    environment:
+      - DATABASE_URL=mongodb://mongo:27017/taskdb
+
+  team-service:
+    build: ./team-service
+    container_name: team-service
+    ports:
+      - "4004:4004"
+    depends_on:
+      - mongo
+    environment:
+      - DATABASE_URL=mongodb://mongo:27017/teamdb
+
+  notification-service:
+    build: ./notification-service
+    container_name: notification-service
+    ports:
+      - "4005:4005"
+    depends_on:
+      - mongo
+    environment:
+      - DATABASE_URL=mongodb://mongo:27017/notificationdb
+
+  gateway:
+    build: ./gateway
+    container_name: gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth-service
+      - project-service
+      - task-service
+      - team-service
+      - notification-service
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - gateway
+
+volumes:
+  mongo-data:

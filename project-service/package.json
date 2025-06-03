@@ -1,0 +1,19 @@
+{
+  "name": "project-service",
+  "version": "1.0.0",
+  "description": "Service responsible for managing projects",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "author": "Shkelqim Durmishi",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.2.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}
