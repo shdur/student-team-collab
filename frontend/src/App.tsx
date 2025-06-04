@@ -1,12 +1,19 @@
-// App component
-import React from 'react'
+// frontend/src/App.tsx
 
-function App() {
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Login from './pages/login';
+import Signup from './pages/signup';
+// import Dashboard from './pages/Dashboard';  // nëse e ke krijuar më vonë
+
+export default function App() {
   return (
-    <div>
-      <h1>Mirësevini në Student Team Collab!</h1>
-    </div>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        {/* <Route path="/dashboard" element={<Dashboard />} /> */}
+      </Routes>
+    </BrowserRouter>
+  );
 }
-
-export default App
