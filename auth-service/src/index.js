@@ -19,7 +19,10 @@ mongoose.connect(mongoUri, {
 .catch((err) => console.error('❌ MongoDB connection error:', err));
 
 // 🔧 Middleware
-app.use(cors({ origin: 'http://localhost:3001' })); // Lejo frontend-in
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://localhost:3001'],
+  credentials: true,
+}));
 app.use(express.json());
 
 // 🔍 Test route

@@ -5,7 +5,6 @@ const cors = require('cors');
 const app = express();
 const port = 4003;
 
-// Middleware
 app.use(cors({ origin: ['http://localhost:3001', 'http://frontend:3000'] }));
 app.use(express.json());
 
@@ -28,6 +27,16 @@ const taskSchema = new mongoose.Schema({
     default: 'Pending'
   },
   assignedTo: String,
+  projectId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Project',
+    required: true
+  },
+  teamId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Team',
+    required: true
+  },
   priority: {
     type: String,
     enum: ['Low', 'Medium', 'High'],
@@ -58,9 +67,11 @@ app.get('/tasks', async (req, res) => {
 // Create a new task
 app.post('/tasks', async (req, res) => {
   try {
-    const { title, description, status, assignedTo, priority, dueDate } = req.body;
+    const { title, description, status, assignedTo, priority, dueDate, projectId, teamId } = req.body;
 
-    if (!title) return res.status(400).json({ error: 'Title is required' });
+    if (!title || !projectId || !teamId) {
+      return res.status(400).json({ error: 'Title, projectId, and teamId are required' });
+    }
 
     const newTask = new Task({
       title,
@@ -68,7 +79,9 @@ app.post('/tasks', async (req, res) => {
       status,
       assignedTo,
       priority,
-      dueDate
+      dueDate,
+      projectId,
+      teamId
     });
 
     await newTask.save();
@@ -82,11 +95,11 @@ app.post('/tasks', async (req, res) => {
 // Update a task
 app.put('/tasks/:id', async (req, res) => {
   try {
-    const { title, description, status, assignedTo, priority, dueDate } = req.body;
+    const { title, description, status, assignedTo, priority, dueDate, projectId, teamId } = req.body;
 
     const updated = await Task.findByIdAndUpdate(
       req.params.id,
-      { title, description, status, assignedTo, priority, dueDate },
+      { title, description, status, assignedTo, priority, dueDate, projectId, teamId },
       { new: true, runValidators: true }
     );
 
