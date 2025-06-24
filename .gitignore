@@ -1,0 +1,3 @@
+# Përjashto node_modules në çdo shërbim
+node_modules/
+**/node_modules/

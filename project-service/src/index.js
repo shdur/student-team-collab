@@ -21,6 +21,17 @@ mongoose.connect(mongoUri, {
 .then(() => console.log('✅ Connected to MongoDB projectdb'))
 .catch(err => console.error('❌ MongoDB connection error:', err));
 
+// Define Team model for populate
+const Team = mongoose.model('Team', new mongoose.Schema({
+  name: String,
+  members: [String],
+  status: {
+    type: String,
+    enum: ['Active', 'Inactive'],
+    default: 'Active'
+  }
+}));
+
 // Project Schema
 const projectSchema = new mongoose.Schema({
   name: {
@@ -36,6 +47,11 @@ const projectSchema = new mongoose.Schema({
     enum: ['Active', 'Inactive'],
     default: 'Inactive',
   },
+  teamId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Team',
+    required: false,
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -49,10 +65,13 @@ app.get('/', (req, res) => {
   res.send('🚀 Project service is running!');
 });
 
-// GET all projects
+// GET all projects with populated team info
 app.get('/projects', async (req, res) => {
   try {
-    const projects = await Project.find().sort({ createdAt: -1 });
+    const projects = await Project.find()
+      .populate('teamId')
+      .sort({ createdAt: -1 });
+
     res.json(projects);
   } catch (err) {
     console.error('❌ Error fetching projects:', err);
@@ -60,10 +79,10 @@ app.get('/projects', async (req, res) => {
   }
 });
 
-// POST new project
+// POST new project with populate
 app.post('/projects', async (req, res) => {
   try {
-    const { name, description, status } = req.body;
+    const { name, description, status, teamId } = req.body;
 
     if (!name || !description) {
       return res.status(400).json({ error: 'Name and description are required' });
@@ -72,25 +91,28 @@ app.post('/projects', async (req, res) => {
     const newProject = new Project({
       name,
       description,
-      status: status === 'Inactive' ? 'Inactive' : 'Active' // fallback to Active
+      status: status === 'Inactive' ? 'Inactive' : 'Active',
+      teamId: teamId || null
     });
 
     await newProject.save();
-    res.status(201).json(newProject);
+    const populated = await newProject.populate('teamId');
+
+    res.status(201).json(populated);
   } catch (err) {
     console.error('❌ Error creating project:', err);
     res.status(500).json({ error: 'Failed to create project' });
   }
 });
 
-// PUT update project
+// PUT update project with populate
 app.put('/projects/:id', async (req, res) => {
   try {
-    const { name, description, status } = req.body;
+    const { name, description, status, teamId } = req.body;
 
     const updated = await Project.findByIdAndUpdate(
       req.params.id,
-      { name, description, status },
+      { name, description, status, teamId: teamId || null },
       { new: true, runValidators: true }
     );
 
@@ -98,7 +120,8 @@ app.put('/projects/:id', async (req, res) => {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    res.json(updated);
+    const populated = await updated.populate('teamId');
+    res.json(populated);
   } catch (err) {
     console.error('❌ Error updating project:', err);
     res.status(500).json({ error: 'Failed to update project' });
